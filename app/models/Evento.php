@@ -49,10 +49,13 @@ class Evento {
         }
     }
 
-  public function listarPorCriador($criadorId) {
-    $stmt = $this->db->prepare("SELECT id, titulo, organizador, data_inicio, hora_inicio, data_fim, hora_fim, local, descricao, inscricao_inicio, inscricao_fim 
-                                 FROM eventos 
-                                 WHERE criador_id = ?");
+    public function listarPorCriador($criadorId) {
+    $stmt = $this->db->prepare("
+        SELECT id, titulo, organizador, data_inicio, hora_inicio, data_fim, hora_fim,
+               local, descricao, inscricao_inicio, inscricao_fim, cancelado
+        FROM eventos 
+        WHERE criador_id = ?
+    ");
     $stmt->execute([$criadorId]);
     $eventos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -68,6 +71,7 @@ class Evento {
 
     return $eventos;
 }
+
 
 public function buscarPorId($id) {
     $stmt = $this->db->prepare("SELECT * FROM eventos WHERE id = ?");

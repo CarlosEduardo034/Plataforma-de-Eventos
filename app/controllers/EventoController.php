@@ -153,10 +153,7 @@ public function atualizar($id) {
         $inicioEvento = new DateTime("$data_inicio $hora_inicio");
         $fimEvento    = new DateTime("$data_fim $hora_fim");
 
-        if ($inicioEvento < $agora) {
-            throw new Exception("A data e hora de início do evento não pode ser anterior à data atual.");
-        }
-        if ($fimEvento <= $inicioEvento) {
+        if ($fimEvento <= $inicioEvento) { 
             throw new Exception("A data e hora de término deve ser posterior à de início.");
         }
 

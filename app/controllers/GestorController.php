@@ -102,23 +102,29 @@ class GestorController extends Controller {
         $this->redirect(BASE_URL . 'gestor/login');
     }
 
-    // Dashboard do Gestor
-    public function dashboard() {
-        if (session_status() === PHP_SESSION_NONE) session_start();
+  // Dashboard do Gestor
+public function dashboard() {
+    if (session_status() === PHP_SESSION_NONE) session_start();
 
-        if (!isset($_SESSION['usuario_role']) || $_SESSION['usuario_role'] !== 'gestor') {
-            $this->redirect(BASE_URL . 'gestor/login');
-            return;
-        }
-
-        $eventos = $this->eventoModel->listarPorCriador($_SESSION['usuario_id'] ?? 0);
-        $usuarioNome = $_SESSION['usuario_nome'] ?? '';
-
-        $this->view('gestor/dashboard', compact('eventos', 'usuarioNome'));
+    if (!isset($_SESSION['usuario_role']) || $_SESSION['usuario_role'] !== 'gestor') {
+        $this->redirect(BASE_URL . 'gestor/login');
+        return;
     }
 
+    $eventos = $this->eventoModel->listarPorCriador($_SESSION['usuario_id'] ?? 0);
+
+    // Aplica o cálculo de status em cada evento
+    foreach ($eventos as &$evento) {
+        $evento['status'] = $this->eventoModel->getStatus($evento);
+    }
+
+    $usuarioNome = $_SESSION['usuario_nome'] ?? '';
+
+    $this->view('gestor/dashboard', compact('eventos', 'usuarioNome'));
+}
+
     // Cancelar evento
-    public function cancelarEvento($id) {
+public function cancelarEvento($id) {
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
     }
@@ -129,10 +135,7 @@ class GestorController extends Controller {
 
     $usuarioId = $_SESSION['usuario_id'];
 
-    // Instancia o modelo de eventos
     $eventoModel = new Evento();
-
-    // Cancela o evento no banco
     $cancelado = $eventoModel->cancelar($id);
 
     if ($cancelado) {
@@ -141,12 +144,16 @@ class GestorController extends Controller {
         $_SESSION['mensagem_erro'] = "Não foi possível cancelar o evento.";
     }
 
-    // Recarrega os eventos do usuário
+    // Recarrega os eventos do usuário já com status atualizado
     $eventos = $eventoModel->listarPorCriador($usuarioId);
+    foreach ($eventos as &$evento) {
+        $evento['status'] = $eventoModel->getStatus($evento);
+    }
 
-    require __DIR__ . '/../views/gestor/dashboard.php';
+    $usuarioNome = $_SESSION['usuario_nome'] ?? '';
+
+    $this->view('gestor/dashboard', compact('eventos', 'usuarioNome'));
 }
-
 
     // Excluir conta
     public function excluirConta() {

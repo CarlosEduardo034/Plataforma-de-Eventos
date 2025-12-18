@@ -7,8 +7,7 @@
     <button>Editar Conta</button>
 </a>
 
-<a href="<?= BASE_URL ?>usuario/excluirConta" 
-   onclick="return confirm('Tem certeza que deseja excluir sua conta?');">
+<a href="<?= BASE_URL ?>usuario/excluirConta">
     <button style="color:red;">Excluir Conta</button>
 </a>
 

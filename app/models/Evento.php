@@ -31,6 +31,12 @@ class Evento {
 
     return false;
 }
+public function excluir($id) {
+    $sql = "DELETE FROM eventos WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    return $stmt->execute(['id' => $id]);
+}
+
 
     public function criarModalidades($eventoId, $modalidades) {
         $stmt = $this->db->prepare(
@@ -120,11 +126,11 @@ public function getStatus($evento) {
     $inscFim      = !empty($evento['inscricao_fim']) ? new DateTime($evento['inscricao_fim']) : null;
 
     if ($agora > $fimEvento) {
-        return "Evento encerrado";
+        return "Encerrado";
     }
 
     if ($agora >= $inicioEvento && $agora <= $fimEvento) {
-        return "Evento em andamento";
+        return "Em andamento";
     }
 
     if ($inscInicio && $inscFim && $agora >= $inscInicio && $agora <= $inscFim) {

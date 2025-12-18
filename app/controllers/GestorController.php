@@ -1,6 +1,4 @@
 <?php
-// app/controllers/GestorController.php
-
 class GestorController extends Controller {
     private $usuarioModel;
     private $eventoModel;
@@ -10,7 +8,6 @@ class GestorController extends Controller {
         $this->eventoModel  = new Evento();
     }
 
-    // Cadastro do Gestor
     public function cadastro() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nome = trim($_POST['nome'] ?? '');
@@ -71,7 +68,6 @@ class GestorController extends Controller {
         }
     }
 
-    // Login do Gestor
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = trim($_POST['email'] ?? '');
@@ -95,14 +91,12 @@ class GestorController extends Controller {
         }
     }
 
-    // Logout do Gestor
     public function logout() {
         if (session_status() === PHP_SESSION_NONE) session_start();
         session_destroy();
         $this->redirect(BASE_URL . 'gestor/login');
     }
 
-  // Dashboard do Gestor
 public function dashboard() {
     if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -113,9 +107,15 @@ public function dashboard() {
 
     $eventos = $this->eventoModel->listarPorCriador($_SESSION['usuario_id'] ?? 0);
 
-    // Aplica o cálculo de status em cada evento
+    $modalidadeModel = new Modalidade(); // <- Adicione isso
+
     foreach ($eventos as &$evento) {
+
+        // Status
         $evento['status'] = $this->eventoModel->getStatus($evento);
+
+        // 🔥 Buscar modalidades desse evento
+        $evento['modalidades'] = $modalidadeModel->listarPorEvento($evento['id']);
     }
 
     $usuarioNome = $_SESSION['usuario_nome'] ?? '';
@@ -123,40 +123,100 @@ public function dashboard() {
     $this->view('gestor/dashboard', compact('eventos', 'usuarioNome'));
 }
 
-    // Cancelar evento
+
 public function cancelarEvento($id) {
-    if (session_status() == PHP_SESSION_NONE) {
+    if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
+
     if (empty($_SESSION['usuario_id'])) {
-        header('Location: ' . BASE_URL . 'login');
-        exit;
+        $this->redirect(BASE_URL . 'login');
+        return;
     }
 
-    $usuarioId = $_SESSION['usuario_id'];
+    $evento = $this->eventoModel->buscarPorId($id);
 
-    $eventoModel = new Evento();
-    $cancelado = $eventoModel->cancelar($id);
+    if (!$evento) {
+        $_SESSION['mensagem_erro'] = 'Evento não encontrado.';
+        $this->redirect(BASE_URL . 'gestor/dashboard');
+        return;
+    }
 
-    if ($cancelado) {
-        $_SESSION['mensagem_sucesso'] = "Evento cancelado com sucesso.";
+    // Verifica status
+    $status = $this->eventoModel->getStatus($evento);
+
+    if (in_array($status, ['Cancelado', 'Encerrado', 'Em andamento'])) {
+        $_SESSION['mensagem_erro'] = 'Este evento não pode mais ser cancelado.';
+        $this->redirect(BASE_URL . 'gestor/dashboard');
+        return;
+    }
+
+    // Cancela evento
+    $ok = $this->eventoModel->cancelar($id);
+
+    if ($ok) {
+        $_SESSION['mensagem_sucesso'] = 'Evento cancelado com sucesso.';
     } else {
-        $_SESSION['mensagem_erro'] = "Não foi possível cancelar o evento.";
+        $_SESSION['mensagem_erro'] = 'Não foi possível cancelar o evento.';
     }
 
-    // Recarrega os eventos do usuário já com status atualizado
-    $eventos = $eventoModel->listarPorCriador($usuarioId);
-    foreach ($eventos as &$evento) {
-        $evento['status'] = $eventoModel->getStatus($evento);
-    }
-
-    $usuarioNome = $_SESSION['usuario_nome'] ?? '';
-
-    $this->view('gestor/dashboard', compact('eventos', 'usuarioNome'));
+    $this->redirect(BASE_URL . 'gestor/dashboard');
 }
 
-    // Excluir conta
-    public function excluirConta() {
+public function excluirEvento($id) {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (empty($_SESSION['usuario_id'])) {
+        $this->redirect(BASE_URL . 'login');
+        return;
+    }
+
+    $evento = $this->eventoModel->buscarPorId($id);
+
+    if (!$evento) {
+        $_SESSION['mensagem_erro'] = 'Evento não encontrado.';
+        $this->redirect(BASE_URL . 'gestor/dashboard');
+        return;
+    }
+
+    $status = $this->eventoModel->getStatus($evento);
+
+    // 🔒 REGRA DE NEGÓCIO
+    if ($status !== 'Cancelado') {
+        $_SESSION['mensagem_erro'] = 'Apenas eventos cancelados podem ser excluídos.';
+        $this->redirect(BASE_URL . 'gestor/dashboard');
+        return;
+    }
+
+    // Exclui o evento
+    $ok = $this->eventoModel->excluir($id);
+
+    if ($ok) {
+        $_SESSION['mensagem_sucesso'] = 'Evento excluído definitivamente.';
+    } else {
+        $_SESSION['mensagem_erro'] = 'Erro ao excluir evento.';
+    }
+
+    $this->redirect(BASE_URL . 'gestor/dashboard');
+}
+
+
+public function perfil() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_role'] !== 'gestor') {
+        $this->redirect(BASE_URL . 'gestor/login');
+    }
+
+    $usuario = $this->usuarioModel->buscarPorId($_SESSION['usuario_id']);
+    $this->view('gestor/perfil', compact('usuario'));
+}
+
+public function excluirConta() {
         if (session_status() === PHP_SESSION_NONE) session_start();
         if (!isset($_SESSION['usuario_id'])) {
             $this->redirect(BASE_URL . 'usuario/login');
@@ -172,10 +232,9 @@ public function cancelarEvento($id) {
         } else {
             $this->view('usuario/excluirConta');
         }
-    }
+}
 
-    // Editar conta
-    public function editarConta() {
+public function editarConta() {
         if (!isset($_SESSION['usuario_id'])) {
             header("Location: " . BASE_URL . "gestor/login");
             exit;
@@ -197,9 +256,9 @@ public function cancelarEvento($id) {
                 $erro = "Senha atual incorreta.";
             } else {
                 if ($usuarioModel->atualizarConta($_SESSION['usuario_id'], $nome, $email)) {
-                    $sucesso = "Dados atualizados com sucesso!";
                     $_SESSION['usuario_nome'] = $nome;
-                    $usuario = $usuarioModel->buscarPorId($_SESSION['usuario_id']);
+                    $this->redirect(BASE_URL . 'gestor/perfil');
+                    exit;
                 } else {
                     $erro = "Erro ao atualizar os dados. Tente novamente.";
                 }
@@ -211,5 +270,5 @@ public function cancelarEvento($id) {
             'erro' => $erro,
             'sucesso' => $sucesso
         ]);
-    }
+}
 }

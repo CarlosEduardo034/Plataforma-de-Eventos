@@ -2,7 +2,6 @@
 session_start();
 require_once __DIR__ . '/../config.php';
 
-// Autoload simples
 spl_autoload_register(function ($class) {
     $paths = [
         __DIR__ . '/../core/' . $class . '.php',
@@ -18,6 +17,5 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// Router
 $router = new Router();
 $router->dispatch($_GET['url'] ?? '');

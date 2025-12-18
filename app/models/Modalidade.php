@@ -6,18 +6,35 @@ class Modalidade {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    // Cria uma modalidade vinculada a um evento
     public function criar($evento_id, $nome, $descricao, $limite_inscricoes, $taxa_inscricao) {
         $stmt = $this->db->prepare(
-            "INSERT INTO modalidades (evento_id, nome, descricao, limite_inscricoes, taxa_inscricao) VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO modalidades (evento_id, nome, descricao, limite_inscricoes, taxa_inscricao) 
+             VALUES (?, ?, ?, ?, ?)"
         );
         return $stmt->execute([$evento_id, $nome, $descricao, $limite_inscricoes, $taxa_inscricao]);
     }
 
-    // Retorna todas as modalidades de um evento
     public function listarPorEvento($evento_id) {
         $stmt = $this->db->prepare("SELECT * FROM modalidades WHERE evento_id = ? ORDER BY id ASC");
         $stmt->execute([$evento_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function buscarPorId($id) {
+        $stmt = $this->db->prepare("SELECT * FROM modalidades WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function atualizar($id, $nome, $descricao, $limite, $taxa) {
+        $stmt = $this->db->prepare(
+            "UPDATE modalidades SET nome=?, descricao=?, limite_inscricoes=?, taxa_inscricao=? WHERE id=?"
+        );
+        return $stmt->execute([$nome, $descricao, $limite, $taxa, $id]);
+    }
+
+    public function excluir($id) {
+        $stmt = $this->db->prepare("DELETE FROM modalidades WHERE id=?");
+        return $stmt->execute([$id]);
     }
 }

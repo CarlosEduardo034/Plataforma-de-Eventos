@@ -84,6 +84,12 @@
 
 <?php if (!empty($eventos)): ?>
     <?php foreach ($eventos as $evento): ?>
+        <?php
+            $eventoBloqueado = in_array(
+    $evento['status'],
+  ['Cancelado', 'Encerrado', 'Em andamento']);
+        ?>
+
         <div class="evento-container" style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
             <h3><?= htmlspecialchars($evento['titulo']) ?></h3>
             <h2>Status atual: <?= htmlspecialchars($evento['status']) ?></h2>
@@ -95,20 +101,27 @@
             <p><strong>Local:</strong> <?= htmlspecialchars($evento['local']) ?></p>
             <p><strong>Descrição:</strong> <?= htmlspecialchars($evento['descricao']) ?></p>
 
-            <button type="button" onclick="toggleModalidades(<?= $evento['id'] ?>)">Modalidades</button>
-    
-            <?php if ($evento['status'] !== 'Cancelado' && $evento['status'] !== 'Encerrado' && $evento['status'] !== 'Em andamento'): ?>
+            <?php if (!$eventoBloqueado): ?>
                 <a href="<?= BASE_URL ?>evento/editarForm/<?= $evento['id'] ?>">
                     <button type="button">Editar</button>
                 </a>
-                <a href="<?= BASE_URL ?>gestor/cancelarEvento/<?= $evento['id'] ?>" 
-                onclick="return confirm('Tem certeza que deseja cancelar este evento?');">
+
+                <a href="<?= BASE_URL ?>gestor/cancelarEvento/<?= $evento['id'] ?>"
+                    onclick="return confirm('Tem certeza que deseja cancelar este evento?');">
                     <button type="button">Cancelar Evento</button>
                 </a>
             <?php endif; ?>
+            <?php if ($evento['status'] === 'Cancelado'): ?>
+                <a href="<?= BASE_URL ?>gestor/excluirEvento/<?= $evento['id'] ?>"
+                onclick="return confirm('ATENÇÃO: esta ação é definitiva. Deseja excluir este evento?');">
+                    <button type="button" style="color:red;">
+                        Excluir Evento
+                    </button>
+                </a>
+            <?php endif; ?>
 
-            <!-- Tabela de modalidades -->
-            <div id="modalidades-<?= $evento['id'] ?>" style="display:none; margin-top:10px;">
+
+            <div id="modalidades-<?= $evento['id'] ?>" style="display:block; margin-top:10px;">
                 <table>
                     <thead>
                         <tr>
@@ -117,8 +130,10 @@
                             <th>Inscrições atuais</th>
                             <th>Limite de inscrições</th>
                             <th>Taxa de inscrição</th>
-                            <th>Excluir</th>
-                            <th>Editar</th>
+                            <?php if (!$eventoBloqueado): ?>
+                                <th>Editar</th>
+                                <th>Excluir</th>
+                            <?php endif; ?> 
                         </tr>
                     </thead>
                     <tbody>
@@ -130,8 +145,17 @@
                                     <td>0</td>
                                     <td><?= htmlspecialchars($mod['limite_inscricoes']) ?></td>
                                     <td><?= htmlspecialchars($mod['taxa_inscricao']) ?></td>
-                                    <td><button type="button">Excluir</button></td>
-                                    <td><button type="button">Editar</button></td>
+                                    <?php if (!$eventoBloqueado): ?>
+                                        <td>
+                                            <a href="<?= BASE_URL ?>modalidade/editar/<?= $mod['id'] ?>">Editar</a>
+                                        </td>
+                                        <td>
+                                            <a href="<?= BASE_URL ?>modalidade/excluir/<?= $mod['id'] ?>"
+                                            onclick="return confirm('Deseja realmente excluir esta modalidade?');">
+                                            Excluir
+                                            </a>
+                                        </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>

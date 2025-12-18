@@ -27,10 +27,11 @@
 
 
     <?php else: ?>
+         // redirecionar para home
         <h1>Bem-vindo à plataforma!</h1>
         <p>Escolha uma opção no menu ou faça login:</p>
         <ul>
-            <li><a href="<?= BASE_URL ?>admin/login">Login Admin</a></li>
+            <li><a href="<?= BASE_URL ?>admin/login">Login Admin</a></li> 
             <li><a href="<?= BASE_URL ?>gestor/login">Login Gestor</a></li>
             <li><a href="<?= BASE_URL ?>gestor/cadastro">Cadastro Gestor</a></li>
             <li><a href="<?= BASE_URL ?>usuario/login">Login Usuário</a></li>

@@ -1,9 +1,7 @@
-Options -MultiViews
 RewriteEngine On
-
 RewriteBase /Eventos/public/
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
-RewriteRule ^(.*)$ index.php?url=$1 [L,QSA]
+RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]

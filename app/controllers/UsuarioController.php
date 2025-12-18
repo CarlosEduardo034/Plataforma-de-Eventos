@@ -124,7 +124,6 @@ public function excluirConta() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $this->usuarioModel->excluir($usuarioId);
 
-        // Destrói sessão e redireciona
         session_destroy();
         $this->redirect(BASE_URL . 'principal');
     } else {
@@ -154,10 +153,9 @@ public function editarConta() {
             $erro = "Senha atual incorreta.";
         } else {
             if ($usuarioModel->atualizarConta($_SESSION['usuario_id'], $nome, $email)) {
-                $sucesso = "Dados atualizados com sucesso!";
-                // Atualiza os dados da sessão também
                 $_SESSION['usuario_nome'] = $nome;
-                $usuario = $usuarioModel->buscarPorId($_SESSION['usuario_id']);
+                $this->redirect(BASE_URL . 'usuario/perfil');
+                exit; 
             } else {
                 $erro = "Erro ao atualizar os dados. Tente novamente.";
             }

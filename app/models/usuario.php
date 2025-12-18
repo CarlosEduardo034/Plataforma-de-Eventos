@@ -71,15 +71,11 @@ class Usuario {
     public function emailExiste($email) {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM usuarios WHERE email = ?");
         $stmt->execute([$email]);
-        return $stmt->fetchColumn() > 0; // Retorna true se já existe
+        return $stmt->fetchColumn() > 0;
     }
 
-    /**
-     * Gera uma chave temporária (para criação de gestores)
-     * @return string
-     */
     public function gerarChaveGestor() {
-        return bin2hex(random_bytes(4)); // 8 caracteres hexadecimais
+        return bin2hex(random_bytes(4));
     }
 
     public function excluir($id) {

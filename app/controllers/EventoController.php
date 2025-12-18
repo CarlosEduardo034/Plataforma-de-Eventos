@@ -116,16 +116,24 @@ class EventoController extends Controller {
     }
 
     public function editarForm($id) {
-    $evento = $this->eventoModel->buscarPorId($id);
+        $evento = $this->eventoModel->buscarPorId($id);
 
-    if (!$evento) {
-        $erro = "Evento não encontrado.";
-        require __DIR__ . '/../views/gestor/dashboard.php';
-        return;
+        if (!$evento) {
+            $this->redirect(BASE_URL . 'gestor/dashboard');
+            return;
+        }
+
+        $status = $this->eventoModel->getStatus($evento);
+
+        if (in_array($status, ['Cancelado', 'Encerrado', 'Em andamento'])) {
+            $_SESSION['mensagem_erro'] = 'Este evento não pode mais ser editado.';
+            $this->redirect(BASE_URL . 'gestor/dashboard');
+            return;
+        }
+
+        require __DIR__ . '/../views/gestor/editar_evento.php';
     }
 
-    require __DIR__ . '/../views/gestor/editar_evento.php';
-}
 
 public function atualizar($id) {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -135,6 +143,21 @@ public function atualizar($id) {
 
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
+    }
+
+    $evento = $this->eventoModel->buscarPorId($id);
+
+    if (!$evento) {
+        $this->redirect(BASE_URL . 'gestor/dashboard');
+        return;
+    }
+
+    $status = $this->eventoModel->getStatus($evento);
+
+    if (in_array($status, ['Cancelado', 'Encerrado', 'Em andamento'])) {
+        $_SESSION['mensagem_erro'] = 'Este evento não pode mais ser editado.';
+        $this->redirect(BASE_URL . 'gestor/dashboard');
+        return;
     }
 
     $titulo      = trim($_POST['titulo'] ?? '');
@@ -217,7 +240,5 @@ public function editar($id) {
 
     require __DIR__ . '/../views/gestor/editar_evento.php';
 }
-
-
 
 }

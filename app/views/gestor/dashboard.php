@@ -156,6 +156,7 @@
                                             </a>
                                         </td>
                                     <?php endif; ?>
+                                    
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -165,9 +166,40 @@
                         <?php endif; ?>
                     </tbody>
                 </table>
+                <?php if (!$eventoBloqueado): ?>
+    <hr>
+
+    <h4>Adicionar nova modalidade</h4>
+
+    <form action="<?= BASE_URL ?>modalidade/criar/<?= $evento['id'] ?>" method="POST">
+        <label>
+            Nome:
+            <input type="text" name="nome" required>
+        </label><br><br>
+
+        <label>
+            Descrição:
+            <input type="text" name="descricao">
+        </label><br><br>
+
+        <label>
+            Limite de inscrições:
+            <input type="number" name="limite_inscricoes" min="0">
+        </label><br><br>
+
+        <label>
+            Taxa de inscrição:
+            <input type="number" name="taxa_inscricao" step="0.01" min="0">
+        </label><br><br>
+
+        <button type="submit">Adicionar Modalidade</button>
+    </form>
+<?php endif; ?>
+
             </div>
         </div>
     <?php endforeach; ?>
+
 <?php else: ?>
     <p>Você ainda não criou nenhum evento.</p>
 <?php endif; ?>

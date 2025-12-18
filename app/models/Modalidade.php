@@ -6,13 +6,21 @@ class Modalidade {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function criar($evento_id, $nome, $descricao, $limite_inscricoes, $taxa_inscricao) {
-        $stmt = $this->db->prepare(
-            "INSERT INTO modalidades (evento_id, nome, descricao, limite_inscricoes, taxa_inscricao) 
-             VALUES (?, ?, ?, ?, ?)"
-        );
-        return $stmt->execute([$evento_id, $nome, $descricao, $limite_inscricoes, $taxa_inscricao]);
-    }
+    public function criar($eventoId, $nome, $descricao, $limite, $taxa) {
+    $sql = "INSERT INTO modalidades 
+            (evento_id, nome, descricao, limite_inscricoes, taxa_inscricao)
+            VALUES (:evento_id, :nome, :descricao, :limite, :taxa)";
+
+    $stmt = $this->db->prepare($sql);
+
+    return $stmt->execute([
+        'evento_id' => $eventoId,
+        'nome' => $nome,
+        'descricao' => $descricao,
+        'limite' => $limite,
+        'taxa' => $taxa
+    ]);
+}
 
     public function listarPorEvento($evento_id) {
         $stmt = $this->db->prepare("SELECT * FROM modalidades WHERE evento_id = ? ORDER BY id ASC");
